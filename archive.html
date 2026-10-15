@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athletle Archive</title>
+<meta name="description" content="Replay every past Athletle puzzle.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a class="icon" href="./" aria-label="Back to today's game" title="Today's game">←</a>
+  <h1><a href="./">ATHLETLE</a></h1>
+  <span class="icon" style="visibility:hidden"></span>
+</header>
+
+<main>
+  <h2 style="margin:4px 0 4px">Archive</h2>
+  <p class="sub" style="text-align:left;margin-top:0">Replay any past day. Athletes stay hidden until you've played that day. Replays don't change your streak.</p>
+  <ul class="archive-list" id="list"></ul>
+  <p class="empty" id="empty" hidden>Today is Athletle's first day, so there's nothing to replay yet. Each finished day shows up here from tomorrow.</p>
+</main>
+
+<script src="athletes.js"></script>
+<script src="common.js"></script>
+<script>
+(() => {
+  const { dayNumber, dateForDay, athleteForDay, load, avatar, MAX_GUESSES } = Athletle;
+  const today = dayNumber();
+  const store = load();
+  const list = document.getElementById("list");
+  const fmt = (n) => dateForDay(n).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+
+  for (let n = today; n >= 0; n--) {
+    const game = store.days[n];
+    const athlete = athleteForDay(n);
+    const won = game?.done && game.guesses.includes(athlete.name);
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = n === today ? "./" : `./?day=${n}`;
+
+    const no = document.createElement("span");
+    no.className = "no";
+    no.textContent = `#${n + 1}`;
+    a.appendChild(no);
+
+    if (game?.done) a.appendChild(avatar(athlete));
+    else { const m = document.createElement("span"); m.className = "mystery"; m.textContent = "?"; a.appendChild(m); }
+
+    const info = document.createElement("span");
+    info.className = "info";
+    info.innerHTML = `<b></b><small>${fmt(n)}</small>`;
+    info.querySelector("b").textContent = game?.done ? `${athlete.name} · ${athlete.sport}` : "Hidden athlete";
+    a.appendChild(info);
+
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    if (n === today && !game?.done) { pill.classList.add("today"); pill.textContent = "Today"; }
+    else if (won) { pill.classList.add("won"); pill.textContent = `Solved ${game.guesses.length}/${MAX_GUESSES}`; }
+    else if (game?.done) { pill.classList.add("lost"); pill.textContent = "Missed"; }
+    else if (game?.guesses.length) pill.textContent = "In progress";
+    else pill.textContent = "Play";
+    a.appendChild(pill);
+
+    li.appendChild(a);
+    list.appendChild(li);
+  }
+  document.getElementById("empty").hidden = today > 0;
+})();
+</script>
+</body>
+</html>

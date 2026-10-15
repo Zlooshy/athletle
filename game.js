@@ -1,8 +1,6 @@
 (() => {
-  const MAX_GUESSES = 10;
+  const { MAX_GUESSES, dayNumber, athleteForDay, load, save, avatar } = Athletle;
   const HINT_AFTER = 5;
-  const LAUNCH = new Date(2026, 9, 15); // puzzle #1 = 15 Oct 2026 (local time)
-  const STORE_KEY = "athletle-v1";
 
   // ---------- helpers ----------
   const $ = (id) => document.getElementById(id);
@@ -18,36 +16,16 @@
   const toInches = (cm) => Math.round(cm / 2.54);
   const fmtHeight = (cm) => { const i = toInches(cm); return `${Math.floor(i / 12)}'${i % 12}"`; };
 
-  // Seeded shuffle so every player gets the same athlete on the same day,
-  // and no athlete repeats until the whole list has been used.
-  function mulberry32(a) {
-    return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  }
-  function dayNumber(d = new Date()) {
-    const today = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    return Math.round((today - LAUNCH) / 86400000);
-  }
-  function athleteForDay(n) {
-    const cycle = Math.floor(n / ATHLETES.length);
-    const rand = mulberry32(20261015 + cycle);
-    const order = ATHLETES.map((_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    const idx = ((n % ATHLETES.length) + ATHLETES.length) % ATHLETES.length;
-    return ATHLETES[order[idx]];
-  }
-
-  // ---------- storage (safe if blocked) ----------
-  function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
-  function save(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch {} }
-
   // ---------- state ----------
-  const day = dayNumber();
+  // ?day=N replays an earlier puzzle from the archive (N = puzzle number - 1).
+  const today = dayNumber();
+  const asked = parseInt(new URLSearchParams(location.search).get("day"), 10);
+  const day = Number.isInteger(asked) && asked >= 0 && asked < today ? asked : today;
+  const replay = day !== today;
   const answer = athleteForDay(day);
   const store = load();
-  store.stats ||= { played: 0, wins: 0, streak: 0, best: 0, dist: Array(MAX_GUESSES).fill(0), lastWinDay: null };
-  if (store.day !== day) { store.day = day; store.guesses = []; store.done = false; }
-  let guesses = store.guesses.map((n) => ATHLETES.find((a) => a.name === n)).filter(Boolean);
+  const game = (store.days[day] ||= { guesses: [], done: false });
+  let guesses = game.guesses.map((n) => ATHLETES.find((a) => a.name === n)).filter(Boolean);
 
   // ---------- compare ----------
   function numeric(guessVal, ansVal, closeFn) {
@@ -77,7 +55,10 @@
     row.className = "row";
     const nameCell = document.createElement("div");
     nameCell.className = "cell name" + (g === answer ? " green" : "");
-    nameCell.textContent = g.name;
+    nameCell.appendChild(avatar(g));
+    const nm = document.createElement("span");
+    nm.textContent = g.name;
+    nameCell.appendChild(nm);
     row.appendChild(nameCell);
     const r = compare(g);
     [r.sport, r.nation, r.age, r.height, r.worth].forEach((c, i) => {
@@ -90,8 +71,8 @@
   function initials(name) { return name.split(/\s+/).map((w) => w[0]).join(". ") + "."; }
   function updateMeta() {
     const n = guesses.length;
-    $("guessCount").textContent = store.done ? `${n} of ${MAX_GUESSES} used` : `Guess ${n + 1} of ${MAX_GUESSES}`;
-    $("hint").textContent = !store.done && n >= HINT_AFTER ? `Initials: ${initials(answer.name)}` : "";
+    $("guessCount").textContent = game.done ? `${n} of ${MAX_GUESSES} used` : `Guess ${n + 1} of ${MAX_GUESSES}`;
+    $("hint").textContent = !game.done && n >= HINT_AFTER ? `Initials: ${initials(answer.name)}` : "";
   }
   function emojiGrid() {
     return guesses.slice().map((g) => {
@@ -104,13 +85,14 @@
     const box = $("result");
     box.classList.remove("hidden");
     box.innerHTML = `<h2>${won ? "You got it! 🎉" : "Out of guesses"}</h2>
-      <div>Today's athlete was</div>
-      <div class="answer">${answer.name}</div>
+      <div>${replay ? `Puzzle #${day + 1}'s` : "Today's"} athlete was</div>
+      <div class="answer-row" id="answerRow"><div class="answer">${answer.name}</div></div>
       <div class="small">${answer.sport} · ${answer.nationality}</div>
       <button class="btn" id="shareBtn">Share result</button>`;
+    $("answerRow").prepend(avatar(answer, "big"));
     $("shareBtn").onclick = share;
     $("guessInput").disabled = true;
-    $("guessInput").placeholder = "Come back tomorrow for a new athlete";
+    $("guessInput").placeholder = replay ? "Pick another day from the archive" : "Come back tomorrow for a new athlete";
   }
   function share() {
     const won = guesses.some((g) => g === answer);
@@ -138,7 +120,8 @@
 
   // ---------- guessing ----------
   function finish(won) {
-    store.done = true;
+    game.done = true;
+    if (replay) { save(store); setTimeout(showResult, 900); return; } // archive games don't count toward stats
     const s = store.stats;
     s.played++;
     if (won) {
@@ -150,10 +133,10 @@
     setTimeout(() => { showResult(); renderStats(); $("statsDlg").showModal(); }, 900);
   }
   function submit(athlete) {
-    if (store.done) return;
+    if (game.done) return;
     if (guesses.includes(athlete)) { toast("Already guessed"); return; }
     guesses.push(athlete);
-    store.guesses = guesses.map((g) => g.name);
+    game.guesses = guesses.map((g) => g.name);
     save(store);
     addRow(athlete, true);
     $("guessInput").value = ""; renderSuggestions();
@@ -174,7 +157,8 @@
     active = 0;
     matches.forEach((a, i) => {
       const li = document.createElement("li");
-      li.innerHTML = `<span>${a.name}</span><small>${a.sport}</small>`;
+      li.innerHTML = `<span class="who"><span>${a.name}</span></span><small>${a.sport}</small>`;
+      li.firstChild.prepend(avatar(a, "small"));
       if (i === active) li.classList.add("active");
       li.onmousedown = (e) => { e.preventDefault(); submit(a); };
       ul.appendChild(li);
@@ -199,11 +183,16 @@
 
   // ---------- boot ----------
   $("puzzleNo").textContent = `#${day + 1}`;
+  if (replay) {
+    $("replayBar").hidden = false;
+    $("whichDay").textContent = "this day's";
+    $("replayDate").textContent = Athletle.dateForDay(day).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  }
   $("helpBtn").onclick = () => $("helpDlg").showModal();
   $("statsBtn").onclick = () => { renderStats(); $("statsDlg").showModal(); };
   guesses.forEach((g) => addRow(g, false));
   updateMeta();
-  if (store.done) showResult();
+  if (game.done) showResult();
   else if (!store.seenHelp) { store.seenHelp = true; save(store); $("helpDlg").showModal(); }
   else $("guessInput").focus();
   tickCountdown(); setInterval(tickCountdown, 1000);

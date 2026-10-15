@@ -3,6 +3,7 @@
 // height: centimetres
 // netWorth: estimated net worth in millions of US dollars (public estimates, rounded; update as needed)
 // continent: used for the "close" hint on nationality
+// wiki: Wikipedia page title for the photo, only needed when it differs from the name
 const ATHLETES = [
   { name: "Lionel Messi", sport: "Soccer", nationality: "Argentina", continent: "South America", born: "1987-06-24", height: 170, netWorth: 850, gender: "M" },
   { name: "Cristiano Ronaldo", sport: "Soccer", nationality: "Portugal", continent: "Europe", born: "1985-02-05", height: 187, netWorth: 950, gender: "M" },
@@ -38,7 +39,7 @@ const ATHLETES = [
   { name: "Patrick Mahomes", sport: "American Football", nationality: "USA", continent: "North America", born: "1995-09-17", height: 188, netWorth: 90, gender: "M" },
   { name: "Travis Kelce", sport: "American Football", nationality: "USA", continent: "North America", born: "1989-10-05", height: 196, netWorth: 90, gender: "M" },
   { name: "Aaron Rodgers", sport: "American Football", nationality: "USA", continent: "North America", born: "1983-12-02", height: 188, netWorth: 200, gender: "M" },
-  { name: "Josh Allen", sport: "American Football", nationality: "USA", continent: "North America", born: "1996-05-21", height: 196, netWorth: 50, gender: "M" },
+  { name: "Josh Allen", wiki: "Josh Allen (quarterback)", sport: "American Football", nationality: "USA", continent: "North America", born: "1996-05-21", height: 196, netWorth: 50, gender: "M" },
 
   { name: "Shohei Ohtani", sport: "Baseball", nationality: "Japan", continent: "Asia", born: "1994-07-05", height: 193, netWorth: 200, gender: "M" },
   { name: "Aaron Judge", sport: "Baseball", nationality: "USA", continent: "North America", born: "1992-04-26", height: 201, netWorth: 100, gender: "M" },

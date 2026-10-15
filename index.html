@@ -10,12 +10,19 @@
 <body>
 <header>
   <button class="icon" id="helpBtn" aria-label="How to play">?</button>
-  <h1>ATHLETLE</h1>
-  <button class="icon" id="statsBtn" aria-label="Stats">📊</button>
+  <h1><a href="./">ATHLETLE</a></h1>
+  <div class="hdr-right">
+    <a class="icon" href="archive.html" aria-label="Archive" title="Archive">🗂️</a>
+    <button class="icon" id="statsBtn" aria-label="Stats">📊</button>
+  </div>
 </header>
 
 <main>
-  <p class="sub">Guess today's athlete in <b>10</b> tries. <span id="puzzleNo"></span></p>
+  <div class="replay-bar" id="replayBar" hidden>
+    <span>Replaying from the archive · <b id="replayDate"></b></span>
+    <a href="./">Play today's</a>
+  </div>
+  <p class="sub">Guess <span id="whichDay">today's</span> athlete in <b>10</b> tries. <span id="puzzleNo"></span></p>
 
   <div class="guess-box">
     <input id="guessInput" type="text" placeholder="Type an athlete's name…" autocomplete="off" spellcheck="false" aria-label="Athlete name">
@@ -69,6 +76,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="athletes.js"></script>
+<script src="common.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

@@ -9,50 +9,66 @@
 </head>
 <body>
 <header>
-  <a class="icon" href="./" aria-label="Back to today's game" title="Today's game">←</a>
+  <a class="icon" id="backLink" href="./" aria-label="Back to today's game" title="Today's game">←</a>
   <h1><a href="./">ATHLETLE</a></h1>
   <span class="icon" style="visibility:hidden"></span>
 </header>
+<nav class="mode-bar" id="modeBar" aria-label="Choose a sport"></nav>
 
 <main>
-  <h2 style="margin:4px 0 4px">Archive</h2>
-  <p class="sub" style="text-align:left;margin-top:0">Replay any past day. Athletes stay hidden until you've played that day. Replays don't change your streak.</p>
+  <h2 class="page-title" id="title">Archive</h2>
+  <p class="sub left">Replay any past day. Athletes stay hidden until you've played that day. Replays don't change your streak.</p>
   <ul class="archive-list" id="list"></ul>
-  <p class="empty" id="empty" hidden>Today is Athletle's first day, so there's nothing to replay yet. Each finished day shows up here from tomorrow.</p>
 </main>
 
-<script src="athletes.js"></script>
+<script src="data/countries.js"></script>
+<script src="data/core.js"></script>
+<script src="data/soccer.js"></script>
+<script src="data/basketball.js"></script>
+<script src="data/football.js"></script>
+<script src="data/baseball_hockey.js"></script>
+<script src="data/individual.js"></script>
+<script src="data/combat_cricket_rugby.js"></script>
+<script src="data/extra.js"></script>
+<script src="data/finalize.js"></script>
 <script src="common.js"></script>
 <script>
 (() => {
-  const { dayNumber, dateForDay, athleteForDay, load, avatar, MAX_GUESSES } = Athletle;
+  const { MODES, modeFromURL, dayNumber, dateForDay, athleteForDay, load, modeState, avatar, MAX_GUESSES } = Athletle;
+  const mode = modeFromURL(), M = MODES[mode];
+  const q = (extra) => { const s = new URLSearchParams({ ...(mode !== "all" && { mode }), ...extra }).toString(); return s ? "?" + s : ""; };
   const today = dayNumber();
-  const store = load();
+  const ms = modeState(load(), mode);
+  document.title = `Athletle ${mode === "all" ? "" : M.label + " "}Archive`;
+  document.getElementById("title").textContent = `${M.icon} ${M.label} archive`;
+  document.getElementById("backLink").href = "./" + q({});
+
+  const bar = document.getElementById("modeBar");
+  for (const [key, m] of Object.entries(MODES)) {
+    const a = document.createElement("a");
+    a.className = "mode-chip" + (key === mode ? " current" : "");
+    a.href = key === "all" ? "archive.html" : `archive.html?mode=${key}`;
+    a.textContent = `${m.icon} ${m.label}`;
+    bar.appendChild(a);
+  }
+  const cur = bar.querySelector(".current");
+  if (cur) bar.scrollLeft = cur.offsetLeft - bar.clientWidth / 2 + cur.clientWidth / 2;
+
   const list = document.getElementById("list");
   const fmt = (n) => dateForDay(n).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-
   for (let n = today; n >= 0; n--) {
-    const game = store.days[n];
-    const athlete = athleteForDay(n);
+    const game = ms.days[n];
+    const athlete = athleteForDay(mode, n);
     const won = game?.done && game.guesses.includes(athlete.name);
-    const li = document.createElement("li");
     const a = document.createElement("a");
-    a.href = n === today ? "./" : `./?day=${n}`;
-
-    const no = document.createElement("span");
-    no.className = "no";
-    no.textContent = `#${n + 1}`;
-    a.appendChild(no);
-
-    if (game?.done) a.appendChild(avatar(athlete));
-    else { const m = document.createElement("span"); m.className = "mystery"; m.textContent = "?"; a.appendChild(m); }
-
+    a.href = n === today ? "./" + q({}) : "./" + q({ day: n });
+    a.appendChild(Object.assign(document.createElement("span"), { className: "no", textContent: `#${n + 1}` }));
+    a.appendChild(game?.done ? avatar(athlete) : Object.assign(document.createElement("span"), { className: "mystery", textContent: "?" }));
     const info = document.createElement("span");
     info.className = "info";
-    info.innerHTML = `<b></b><small>${fmt(n)}</small>`;
-    info.querySelector("b").textContent = game?.done ? `${athlete.name} · ${athlete.sport}` : "Hidden athlete";
+    info.append(Object.assign(document.createElement("b"), { textContent: game?.done ? `${athlete.name} · ${athlete.sport}` : "Hidden athlete" }),
+      Object.assign(document.createElement("small"), { textContent: fmt(n) }));
     a.appendChild(info);
-
     const pill = document.createElement("span");
     pill.className = "pill";
     if (n === today && !game?.done) { pill.classList.add("today"); pill.textContent = "Today"; }
@@ -61,11 +77,10 @@
     else if (game?.guesses.length) pill.textContent = "In progress";
     else pill.textContent = "Play";
     a.appendChild(pill);
-
+    const li = document.createElement("li");
     li.appendChild(a);
     list.appendChild(li);
   }
-  document.getElementById("empty").hidden = today > 0;
 })();
 </script>
 </body>

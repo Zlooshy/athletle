@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Athletle</title>
-<meta name="description" content="Guess the daily athlete in 10 tries.">
+<meta name="description" content="Guess the daily athlete in 10 tries. One game for every sport.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,17 +12,18 @@
   <button class="icon" id="helpBtn" aria-label="How to play">?</button>
   <h1><a href="./">ATHLETLE</a></h1>
   <div class="hdr-right">
-    <a class="icon" href="archive.html" aria-label="Archive" title="Archive">🗂️</a>
+    <a class="icon" id="archiveLink" href="archive.html" aria-label="Archive" title="Archive">🗂️</a>
     <button class="icon" id="statsBtn" aria-label="Stats">📊</button>
   </div>
 </header>
+<nav class="mode-bar" id="modeBar" aria-label="Choose a sport"></nav>
 
 <main>
   <div class="replay-bar" id="replayBar" hidden>
     <span>Replaying from the archive · <b id="replayDate"></b></span>
-    <a href="./">Play today's</a>
+    <a id="todayLink" href="./">Play today's</a>
   </div>
-  <p class="sub">Guess <span id="whichDay">today's</span> athlete in <b>10</b> tries. <span id="puzzleNo"></span></p>
+  <p class="sub">Guess <span id="whichDay">today's</span> <span id="whichGame">athlete</span> in <b>10</b> tries. <span id="puzzleNo"></span></p>
 
   <div class="guess-box">
     <input id="guessInput" type="text" placeholder="Type an athlete's name…" autocomplete="off" spellcheck="false" aria-label="Athlete name">
@@ -38,9 +39,7 @@
   </section>
 
   <div class="board">
-    <div class="row head">
-      <div>Athlete</div><div>Sport</div><div>Nation</div><div>Age</div><div>Height</div><div>Net worth</div>
-    </div>
+    <div class="row head" id="boardHead"></div>
     <div id="rows"></div>
   </div>
 
@@ -56,22 +55,23 @@
 
 <dialog id="helpDlg">
   <h2>How to play</h2>
-  <p>A new athlete every day. You get 10 guesses.</p>
+  <p>A new athlete every day, and a separate daily game for each sport. Pick one from the bar at the top. You get 10 guesses.</p>
   <p>After each guess, every box shows how close you were:</p>
   <ul>
-    <li><b>Sport</b>: green if it's the same sport.</li>
+    <li><b>Club / Team / League</b>: green if it matches.</li>
     <li><b>Nation</b>: green if it matches, yellow if same continent.</li>
-    <li><b>Age</b>: yellow if within 3 years, arrows point toward the answer.</li>
+    <li><b>Position</b>: green if it matches. In the NFL, yellow means same side of the ball.</li>
+    <li><b>Age</b>: yellow if within 3 years. Arrows point toward the answer.</li>
     <li><b>Height</b>: yellow if within 2 inches.</li>
     <li><b>Net worth</b>: yellow if within 25%.</li>
   </ul>
-  <p>Stuck? After 4 guesses, pick 1 of 3 hint cards (like their team, former team or nickname). After 8 guesses, pick one of the other two.</p>
-  <p class="small">Net worth figures are rounded public estimates.</p>
+  <p>Stuck? After 4 guesses, pick 1 of 3 hint cards. After 8 guesses, pick one of the other two.</p>
+  <p class="small">Teams are from the 2025/26 season. Net worth figures are rough public estimates. Photos and logos come from Wikipedia and TheSportsDB.</p>
   <button class="btn" onclick="this.closest('dialog').close()">Play</button>
 </dialog>
 
 <dialog id="statsDlg">
-  <h2>Statistics</h2>
+  <h2 id="statsTitle">Statistics</h2>
   <div class="stats" id="statsBody"></div>
   <p class="small">Next athlete in <span id="countdown"></span></p>
   <button class="btn" onclick="this.closest('dialog').close()">Close</button>
@@ -79,7 +79,16 @@
 
 <div id="toast" class="toast"></div>
 
-<script src="athletes.js"></script>
+<script src="data/countries.js"></script>
+<script src="data/core.js"></script>
+<script src="data/soccer.js"></script>
+<script src="data/basketball.js"></script>
+<script src="data/football.js"></script>
+<script src="data/baseball_hockey.js"></script>
+<script src="data/individual.js"></script>
+<script src="data/combat_cricket_rugby.js"></script>
+<script src="data/extra.js"></script>
+<script src="data/finalize.js"></script>
 <script src="hints.js"></script>
 <script src="common.js"></script>
 <script src="game.js"></script>

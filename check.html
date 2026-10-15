@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athletle Photo Check</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="style.css">
+<style>
+  .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .check-item { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; font-size: .78rem; min-width: 0; }
+  .check-item.missing { border-color: #c0392b; }
+  .check-item span.n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .summary { position: sticky; top: 0; background: var(--bg); padding: 8px 0; z-index: 2; }
+  textarea { width: 100%; min-height: 80px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h2 class="page-title">Photo &amp; logo check</h2>
+  <p class="sub left">Loads a photo for every athlete and a logo for every team and league. Red boxes have no photo. Logos load slowly because the free logo service allows about 30 lookups a minute; leave the page open.</p>
+  <div class="summary"><b id="sum">Loading…</b>
+    <details><summary>Copy the missing list</summary><textarea id="missing" readonly></textarea></details></div>
+  <div id="out"></div>
+</main>
+<script src="data/countries.js"></script>
+<script src="data/core.js"></script>
+<script src="data/soccer.js"></script>
+<script src="data/basketball.js"></script>
+<script src="data/football.js"></script>
+<script src="data/baseball_hockey.js"></script>
+<script src="data/individual.js"></script>
+<script src="data/combat_cricket_rugby.js"></script>
+<script src="data/extra.js"></script>
+<script src="data/finalize.js"></script>
+<script src="common.js"></script>
+<script>
+(() => {
+  const { avatar, logo, photoUrl } = Athletle;
+  const out = document.getElementById("out");
+  const bySport = {};
+  ATHLETES.forEach((a) => (bySport[a.sport] ||= []).push(a));
+  let done = 0, missing = [];
+  const update = () => {
+    document.getElementById("sum").textContent = `Photos checked: ${done} of ${ATHLETES.length} · missing: ${missing.length}`;
+    document.getElementById("missing").value = missing.join("\n");
+  };
+  for (const [sport, list] of Object.entries(bySport)) {
+    const h = document.createElement("h3"); h.textContent = `${sport} (${list.length})`; out.appendChild(h);
+    const teams = [...new Set(list.map((a) => a.team).filter(Boolean))];
+    const leagues = [...new Set(list.map((a) => a.league).filter((l) => l && l !== "Retired"))];
+    if (teams.length || leagues.length) {
+      const lg = document.createElement("div"); lg.className = "check-grid";
+      for (const t of teams) { const d = document.createElement("div"); d.className = "check-item"; d.append(logo("team", sport, t), Object.assign(document.createElement("span"), { className: "n", textContent: t })); lg.appendChild(d); }
+      for (const l of leagues) { const d = document.createElement("div"); d.className = "check-item"; d.append(logo("league", sport, l), Object.assign(document.createElement("span"), { className: "n", textContent: l })); lg.appendChild(d); }
+      out.appendChild(lg);
+      out.appendChild(document.createElement("br"));
+    }
+    const grid = document.createElement("div"); grid.className = "check-grid";
+    for (const a of list) {
+      const d = document.createElement("div"); d.className = "check-item";
+      d.append(avatar(a, "small"), Object.assign(document.createElement("span"), { className: "n", textContent: a.name }));
+      grid.appendChild(d);
+      photoUrl(a).then((url) => { done++; if (!url) { missing.push(`${a.name} (${a.sport})`); d.classList.add("missing"); } update(); });
+    }
+    out.appendChild(grid);
+  }
+  update();
+})();
+</script>
+</body>
+</html>

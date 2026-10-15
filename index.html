@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athletle</title>
+<meta name="description" content="Guess the daily athlete in 10 tries.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <button class="icon" id="helpBtn" aria-label="How to play">?</button>
+  <h1>ATHLETLE</h1>
+  <button class="icon" id="statsBtn" aria-label="Stats">📊</button>
+</header>
+
+<main>
+  <p class="sub">Guess today's athlete in <b>10</b> tries. <span id="puzzleNo"></span></p>
+
+  <div class="guess-box">
+    <input id="guessInput" type="text" placeholder="Type an athlete's name…" autocomplete="off" spellcheck="false" aria-label="Athlete name">
+    <ul id="suggestions" role="listbox"></ul>
+  </div>
+  <div class="meta">
+    <span id="guessCount">Guess 1 of 10</span>
+    <span id="hint"></span>
+  </div>
+
+  <div class="board">
+    <div class="row head">
+      <div>Athlete</div><div>Sport</div><div>Nation</div><div>Age</div><div>Height</div><div>Net worth</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div id="result" class="result hidden"></div>
+
+  <div class="legend">
+    <span><i class="sw green"></i>Correct</span>
+    <span><i class="sw yellow"></i>Close</span>
+    <span><i class="sw grey"></i>Wrong</span>
+    <span>↑ ↓ the answer is higher / lower</span>
+  </div>
+</main>
+
+<dialog id="helpDlg">
+  <h2>How to play</h2>
+  <p>A new athlete every day. You get 10 guesses.</p>
+  <p>After each guess, every box shows how close you were:</p>
+  <ul>
+    <li><b>Sport</b>: green if it's the same sport.</li>
+    <li><b>Nation</b>: green if it matches, yellow if same continent.</li>
+    <li><b>Age</b>: yellow if within 3 years, arrows point toward the answer.</li>
+    <li><b>Height</b>: yellow if within 2 inches.</li>
+    <li><b>Net worth</b>: yellow if within 25%.</li>
+  </ul>
+  <p>Stuck? After 5 guesses you get the athlete's initials.</p>
+  <p class="small">Net worth figures are rounded public estimates.</p>
+  <button class="btn" onclick="this.closest('dialog').close()">Play</button>
+</dialog>
+
+<dialog id="statsDlg">
+  <h2>Statistics</h2>
+  <div class="stats" id="statsBody"></div>
+  <p class="small">Next athlete in <span id="countdown"></span></p>
+  <button class="btn" onclick="this.closest('dialog').close()">Close</button>
+</dialog>
+
+<div id="toast" class="toast"></div>
+
+<script src="athletes.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 (() => {
   const { MAX_GUESSES, dayNumber, athleteForDay, load, save, avatar } = Athletle;
-  const HINT_AFTER = 5;
+  const HINT_UNLOCKS = [4, 8]; // after this many guesses you may pick another hint card
 
   // ---------- helpers ----------
   const $ = (id) => document.getElementById(id);
@@ -68,11 +68,34 @@
     });
     $("rows").prepend(row);
   }
-  function initials(name) { return name.split(/\s+/).map((w) => w[0]).join(". ") + "."; }
   function updateMeta() {
     const n = guesses.length;
     $("guessCount").textContent = game.done ? `${n} of ${MAX_GUESSES} used` : `Guess ${n + 1} of ${MAX_GUESSES}`;
-    $("hint").textContent = !game.done && n >= HINT_AFTER ? `Initials: ${initials(answer.name)}` : "";
+    renderHints();
+  }
+  // ---------- pick-a-hint cards ----------
+  function renderHints() {
+    const cards = HINTS[answer.name] || [];
+    const picked = (game.hints ||= []);
+    const allowed = HINT_UNLOCKS.filter((n) => guesses.length >= n).length;
+    const canPick = !game.done && picked.length < allowed;
+    const next = HINT_UNLOCKS[picked.length];
+    $("hintTitle").textContent = game.done ? "Hints" : canPick ? "Pick a hint" :
+      next ? `Next hint unlocks after guess ${next}` : "No hints left";
+    const box = $("hintCards");
+    box.innerHTML = "";
+    cards.forEach(([label, text], i) => {
+      const open = game.done || picked.includes(i);
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "hint-card" + (open ? " open" : canPick ? " pickable" : " locked");
+      b.disabled = open || !canPick;
+      b.innerHTML = `<span class="hint-label"></span><span class="hint-text"></span>`;
+      b.firstChild.textContent = label;
+      b.lastChild.textContent = open ? text : canPick ? "Tap to reveal" : "🔒";
+      b.onclick = () => { picked.push(i); save(store); renderHints(); };
+      box.appendChild(b);
+    });
   }
   function emojiGrid() {
     return guesses.slice().map((g) => {

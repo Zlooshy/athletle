@@ -30,8 +30,12 @@
   </div>
   <div class="meta">
     <span id="guessCount">Guess 1 of 10</span>
-    <span id="hint"></span>
   </div>
+
+  <section class="hints" aria-live="polite">
+    <div class="hints-title" id="hintTitle"></div>
+    <div class="hint-cards" id="hintCards"></div>
+  </section>
 
   <div class="board">
     <div class="row head">
@@ -61,7 +65,7 @@
     <li><b>Height</b>: yellow if within 2 inches.</li>
     <li><b>Net worth</b>: yellow if within 25%.</li>
   </ul>
-  <p>Stuck? After 5 guesses you get the athlete's initials.</p>
+  <p>Stuck? After 4 guesses, pick 1 of 3 hint cards (like their team, former team or nickname). After 8 guesses, pick one of the other two.</p>
   <p class="small">Net worth figures are rounded public estimates.</p>
   <button class="btn" onclick="this.closest('dialog').close()">Play</button>
 </dialog>
@@ -76,6 +80,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="athletes.js"></script>
+<script src="hints.js"></script>
 <script src="common.js"></script>
 <script src="game.js"></script>
 </body>

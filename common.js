@@ -1,7 +1,7 @@
 // Shared by the game page and the archive page.
 const Athletle = (() => {
-  const LAUNCH = new Date(2026, 9, 15); // puzzle #1 = 15 Oct 2026 (local time)
-  const STORE_KEY = "athletle-v1";
+  const LAUNCH = new Date(2026, 9, 2); // puzzle #1 = 2 Oct 2026 (local time)
+  const STORE_KEY = "athletle-v2"; // v2: launch date moved, so day numbers changed
   const PHOTO_KEY = "athletle-photos-v1";
   const MAX_GUESSES = 10;
 
